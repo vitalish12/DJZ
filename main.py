@@ -1,4 +1,17 @@
-<!doctype html>
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import urlparse, parse_qs
+
+hostName = "localhost"
+serverPort = 8080
+
+class MyServer(BaseHTTPRequestHandler):
+    """
+        Специальный класс, который отвечает за
+        обработку входящих запросов от клиентов
+    """
+    def __get_html_content(self):
+        return """
+        <!doctype html>
 <html lang="en">
 <head>
     <meta charset="utf-8">
@@ -305,7 +318,7 @@
                               </label>
                             </div>
                           </div>
-                          <button type="submit" class="btn btn-primary form-control">Отправить</button>
+                          <button type="Отправить" class="btn btn-primary form-control">Отправить</button>
                         </fieldset>
                     </form>
             </div>
@@ -416,3 +429,27 @@
 </script>
 </body>
 </html>
+        """
+
+    def do_GET(self):
+        """ Метод для обработки входящих GET-запросов """
+        query_components = parse_qs(urlparse(self.path).query)
+        page_content = self.__get_html_content()
+        self.send_response(200) # Отправка кода ответа
+        self.send_header("Content-type", "text/html") # Отправка типа данных, который будет передаваться
+        self.end_headers() # Завершение формирования заголовков ответа
+        self.wfile.write(bytes(page_content, "utf-8")) # Тело ответа
+
+if __name__ == "__main__":
+
+    webServer = HTTPServer((hostName, serverPort), MyServer)
+    print("Server started http://%s:%s" % (hostName, serverPort))
+
+    try:
+        # Cтарт веб-сервера в бесконечном цикле прослушивания входящих запросов
+        webServer.serve_forever()
+    except KeyboardInterrupt:
+        pass
+
+    webServer.server_close()
+    print("Server stopped.")
